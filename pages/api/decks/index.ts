@@ -2,52 +2,52 @@ import { NextApiRequest, NextApiResponse } from 'next'
 import pMap from 'p-map'
 import { chunk, flatten, orderBy } from 'lodash'
 import { utils as etherUtils, BigNumber } from 'ethers'
-import { rarityImage } from 'loot-rarity'
 import type { OpenseaResponse, Asset } from '../../../utils/openseaTypes'
-import RobeIDs from '../../../data/robes-ids.json'
+import Rarity from '../../../data/test_json_file.json'
 
-const chunked = chunk(RobeIDs, 20)
+const chunked = chunk(Object.keys(Rarity), 20)
 const apiKey = process.env.OPENSEA_API_KEY
+const fetchDeckPage = async (ids: string[]) => {
 
-const fetchRobePage = async (ids: string[]) => {
-  let url = 'https://api.opensea.io/api/v1/assets?collection=lootproject&'
+  let url = 'https://api.opensea.io/api/v1/assets?collection=adventure-cards&'
   url += ids.map((id) => `token_ids=${id}`).join('&')
 
-  const res = await fetch(url, {
-    headers: {
-      'X-API-KEY': apiKey,
-    },
-  })
+  const res = await fetch(url)
   const json: OpenseaResponse = await res.json()
 
   return Promise.all(
     json.assets.map(async (asset) => {
       return {
-        ...asset,
-        image_url: await rarityImage(asset.token_metadata, {
-          colorFn: ({ itemName }) =>
-            itemName.toLowerCase().includes('divine robe') && 'cyan',
-        }),
+        ...asset
       }
     }),
   )
 }
 
-export interface RobeInfo {
+export interface DeckInfo {
   id: string
   price: Number
   url: string
   svg: string
+  rarity: string
+  oneofs: string
+  tenofs: string
+  divines: string
+  mythics: string
+  wizards: string
+  dragons: string
+  phoenixs: string
+  demons: string
 }
 
-export const fetchRobes = async () => {
-  const data = await pMap(chunked, fetchRobePage, { concurrency: 2 })
+export const fetchDecks = async () => {
+  const data = await pMap(chunked, fetchDeckPage, { concurrency: 2 })
   const mapped = flatten(data)
     .filter(
       (a: Asset) =>
         a?.sell_orders?.[0]?.payment_token_contract.symbol === 'ETH',
     )
-    .map((a: Asset): RobeInfo => {
+    .map((a: Asset): DeckInfo => {
       return {
         id: a.token_id,
         price: Number(
@@ -57,18 +57,27 @@ export const fetchRobes = async () => {
         ),
         url: a.permalink + '?ref=0xfb843f8c4992efdb6b42349c35f025ca55742d33',
         svg: a.image_url,
+        rarity: Rarity[a.token_id].rarity,
+        oneofs: Rarity[a.token_id].oneofone,
+        tenofs: Rarity[a.token_id].oneoften,
+        divines: Rarity[a.token_id].divines,
+        mythics: Rarity[a.token_id].mythics,
+        wizards: Rarity[a.token_id].wizards,
+        dragons: Rarity[a.token_id].dragons,
+        demons: Rarity[a.token_id].demons,
+        phoenixs: Rarity[a.token_id].phoenixs,
       }
     })
 
   return {
-    robes: orderBy(mapped, ['price', 'id'], ['asc', 'asc']),
+    decks: orderBy(mapped, ['rarity'], ['asc']),
     lastUpdate: new Date().toISOString(),
   }
 }
 
 const handler = async (_req: NextApiRequest, res: NextApiResponse) => {
   try {
-    const data = await fetchRobes()
+    const data = await fetchDecks()
     res.status(200).json(data)
   } catch (err) {
     res.status(500).json({ statusCode: 500, message: err.message })
