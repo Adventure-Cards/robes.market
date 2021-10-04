@@ -9,7 +9,7 @@ const chunked = chunk(Object.keys(Rarity), 20)
 const apiKey = process.env.OPENSEA_API_KEY
 const fetchDeckPage = async (ids: string[]) => {
 
-  let url = 'https://api.opensea.io/api/v1/assets?collection=adventure-cards&'
+  let url = 'https://api-eta-flame.vercel.app/api/opensea?collection=adventure-cards&'
   url += ids.map((id) => `token_ids=${id}`).join('&')
 
   const res = await fetch(url)
