@@ -26,7 +26,7 @@ const Deck = ({ deck }: { deck: DeckInfo }) => {
         <img src={deck.svg} alt="" width="350" height="350" />
         <div className="text-center">
           <p className="text-lg">Deck# {deck.id}</p>
-          <p className="text-lg">Rarity: {deck.rarity}/4000</p>
+          <p className="text-lg">Rarity: {deck.rarity}/8000</p>
         </div>
         <div className="text-center">
           <p className="text-lg text-underline"> Why? </p> 
@@ -46,7 +46,7 @@ const IndexPage = ({ decks, lastUpdate }: Props) => {
       <h1 className="text-lg md:text-3xl"> <a target="_blank" href="https://0xadventures.com/"> 🃏 Deck.Market 🃏</a></h1>
       <div className="text-center max-w-screen-md md:leading-loose">
         <p className="md:text-xl">
-          The top {decks.length} of 200 rarest decks for sale, ordered by rarity. 
+          The top {decks.length} of 400 rarest decks for sale, ordered by rarity. 
         </p>
         <p className="md:text-lg pt-2 text-gray-600">
           Site adapted by {' '}
